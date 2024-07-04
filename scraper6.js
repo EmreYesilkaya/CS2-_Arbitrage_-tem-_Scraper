@@ -22,8 +22,11 @@ process.on('SIGINT', handleExit).on('SIGTERM', handleExit);
 process.on('exit', handleExit).on('uncaughtException', handleExit);
 
 (async () => {
+  console.log('Puppeteer başlatılıyor...');
   const browser = await puppeteer.launch();
+  console.log('Browser açıldı.');
   const page = await browser.newPage();
+  console.log('Yeni sayfa oluşturuldu.');
   const startTime = new Date();
   const duration = 60000 * 60 * 1000;
   const reloadInterval = 60 * 1000;
@@ -53,12 +56,15 @@ process.on('exit', handleExit).on('uncaughtException', handleExit);
           try {
             const prices = JSON.parse(data);
             resolve(prices);
+            console.log('API fiyatları başarıyla alındı.');
           } catch (e) {
             reject(e);
+            console.log('API fiyatlarını parse ederken hata oluştu:', e);
           }
         });
       }).on("error", (err) => {
         reject(err);
+        console.log('API fiyatlarını alırken hata oluştu:', err);
       });
     });
   };
@@ -66,7 +72,9 @@ process.on('exit', handleExit).on('uncaughtException', handleExit);
   const apiPrices = await fetchItemPrices();
 
   while (new Date() - startTime < duration) {
+    console.log('Sayfaya gidiliyor...');
     await page.goto('https://www.bynogame.com/tr/oyunlar/csgo/skin-last?size=100', { waitUntil: 'networkidle0', timeout: 60000 });
+    console.log('Sayfaya gidildi ve yüklendi.');
 
     const itemCards = await page.$$('.h-100.itemCard.ping');
     for (let itemCard of itemCards) {
@@ -90,9 +98,12 @@ process.on('exit', handleExit).on('uncaughtException', handleExit);
       }
     }
 
+    console.log('Sayfa yenileniyor...');
     await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 });
+    console.log('Sayfa yenilendi.');
     await new Promise(resolve => setTimeout(resolve, reloadInterval));
   }
 
   await browser.close();
+  console.log('Browser kapatıldı.');
 })();
