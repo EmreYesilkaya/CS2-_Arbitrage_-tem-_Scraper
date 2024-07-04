@@ -1,6 +1,5 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-const fs = require('fs');
 const https = require('https');
 const TelegramBot = require('node-telegram-bot-api');
 
@@ -9,37 +8,14 @@ puppeteer.use(StealthPlugin());
 const token = '7141138826:AAFC4xYdSA2_tUOSdphphCzwVnxk57sMNzk';
 const chatId = '1066322129';
 const bot = new TelegramBot(token, { polling: true });
-const logFilePath = 'log.txt';
 
 const sendMessageToTelegram = (message) => {
   bot.sendMessage(chatId, message).catch(error => console.log(error));
 };
 
-let logStream;
-const resetLogStream = () => {
-  if (logStream) logStream.end();
-  logStream = fs.createWriteStream(logFilePath, { flags: 'w' });
-};
-resetLogStream();
-setInterval(resetLogStream, 60 * 60 * 1000);
-
-const deleteLogFile = () => {
-  fs.unlink(logFilePath, (err) => {
-    if (err) console.error('Error deleting log file:', err);
-    else console.log('Log file deleted successfully');
-  });
-};
-
 const handleExit = () => {
-  if (logStream) {
-    logStream.end(() => {
-      deleteLogFile();
-      process.exit();
-    });
-  } else {
-    deleteLogFile();
-    process.exit();
-  }
+  console.log('Exiting...');
+  process.exit();
 };
 
 process.on('SIGINT', handleExit).on('SIGTERM', handleExit);
@@ -58,7 +34,6 @@ process.on('exit', handleExit).on('uncaughtException', handleExit);
   const log = (message, itemName, priceDifferencePercentage, priceDifference, apiPriceUSD) => {
     if (!loggedItems[itemName] && apiPriceUSD !== null) {
       console.log(message);
-      logStream.write(`${message}\n`);
       loggedItems[itemName] = true;
 
       if (priceDifferencePercentage > -3) {
@@ -120,5 +95,4 @@ process.on('exit', handleExit).on('uncaughtException', handleExit);
   }
 
   await browser.close();
-  logStream.end();
 })();
