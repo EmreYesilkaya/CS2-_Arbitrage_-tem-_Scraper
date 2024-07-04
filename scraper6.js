@@ -32,9 +32,13 @@ const deleteLogFile = () => {
 
 const handleExit = () => {
   if (logStream) {
-    logStream.end(deleteLogFile);
+    logStream.end(() => {
+      deleteLogFile();
+      process.exit();
+    });
   } else {
     deleteLogFile();
+    process.exit();
   }
 };
 
